@@ -1,0 +1,326 @@
+package com.cts.security;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableMethodSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthFilter              jwtAuthFilter;
+    private final CustomerUserDetailsService userDetailsService;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authenticationProvider(authenticationProvider())  // ← REGISTERED HERE
+            .sessionManagement(sm -> sm
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+
+                // ══════════════════════════════════════════════════
+                // PUBLIC — no token required
+                // ══════════════════════════════════════════════════
+                .requestMatchers(
+                    "/auth/register",
+                    "/auth/login"
+                ).permitAll()
+
+                // ══════════════════════════════════════════════════
+                // ADMIN  →  /admin/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("GET", "/admin/get/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT", "/admin/update/**")
+                    .hasRole("ADMINISTRATOR")
+
+                // ══════════════════════════════════════════════════
+                // PASSENGERS  →  /passengers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/passengers/create")
+                    .permitAll()
+                .requestMatchers("DELETE", "/passengers/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("PUT",    "/passengers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("GET",    "/passengers/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+
+                // ══════════════════════════════════════════════════
+                // PASSENGER REPORTS  →  /passenger-reports/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/passenger-reports/passengers/*/reports")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("PUT",    "/passenger-reports/passengers/*/reports/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("GET",    "/passenger-reports/GETALL")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/passenger-reports/passengers/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER", "PASSENGER")
+                .requestMatchers("GET",    "/passenger-reports/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER")
+                .requestMatchers("DELETE", "/passenger-reports/**")
+                    .hasRole("ADMINISTRATOR")
+
+                // ══════════════════════════════════════════════════
+                // DRIVERS  →  /drivers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/drivers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/drivers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/drivers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/drivers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/drivers/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "FLEET_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // DISPATCHERS  →  /dispatchers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/dispatchers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/dispatchers/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/dispatchers/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/dispatchers/GETALL")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/dispatchers/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "DISPATCHER")
+
+                // ══════════════════════════════════════════════════
+                // FLEET MANAGERS  →  /fleetManagers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/fleetManagers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/fleetManagers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/fleetManagers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/fleetManagers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/fleetManagers/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "FLEET_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // COMPLIANCE OFFICERS  →  /compliance-officers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/compliance-officers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/compliance-officers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/compliance-officers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/compliance-officers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "AUDITOR")
+                .requestMatchers("GET",    "/compliance-officers/**")
+                    .hasAnyRole("ADMINISTRATOR", "AUDITOR", "COMPLIANCE_OFFICER")
+
+                // ══════════════════════════════════════════════════
+                // OPERATIONS MANAGERS  →  /operations-managers/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/operations-managers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/operations-managers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/operations-managers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/operations-managers/getAll")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("GET",    "/operations-managers/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // VEHICLES  →  /vehicles/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/vehicles/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/vehicles/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/vehicles/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/vehicles/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "DISPATCHER",   "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/vehicles/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/vehicles/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "DISPATCHER",   "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // ROUTES  →  /route/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/route/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/route/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/route/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/route/getAllRoutes")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "PASSENGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/route/getById/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "PASSENGER", "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // ROUTE SCHEDULES  →  /route-schedules/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/route-schedules/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/route-schedules/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("PUT",    "/route-schedules/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/route-schedules/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/route-schedules/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // DRIVER ASSIGNMENTS  →  /driver-assignments/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/driver-assignments/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/driver-assignments/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("PUT",    "/driver-assignments/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/driver-assignments/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/driver-assignments/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // INSPECTION RECORDS  →  /inspection-records/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/inspection-records/create/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("DELETE", "/inspection-records/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/inspection-records/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/inspection-records/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/inspector/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // KPIs  →  /kpis/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/kpis/create")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("DELETE", "/kpis/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/kpis/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/kpis/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/operations-manager/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/period/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+
+                // ══════════════════════════════════════════════════
+                // MAINTENANCE PLANS  →  /maintenance-plans/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/maintenance-plans/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/maintenance-plans/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("PUT",    "/maintenance-plans/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/overdue")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+
+                // ══════════════════════════════════════════════════
+                // MAINTENANCE RECORDS  →  /maintenance/**
+                // ══════════════════════════════════════════════════
+                .requestMatchers("POST",   "/maintenance/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/maintenance/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("PUT",    "/maintenance/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/maintenance/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/vehicle/**/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+
+                // ── everything else needs a valid token ────────────
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter,
+                             UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+}

@@ -1,0 +1,19 @@
+package com.cts.dto.request;
+
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateOperationsManagerRequest {
+
+    private String name;
+    private String email;
+    private String password;
+    private String phone;
+    private String emergencyContact;
+    private String address;
+    private String bloodGroup;
+}

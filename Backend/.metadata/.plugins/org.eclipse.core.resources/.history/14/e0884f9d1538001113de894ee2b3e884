@@ -1,0 +1,18 @@
+package com.cts.dto.request;
+
+import com.cts.enums.ReportingPeriod;
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateKPIRequest {
+    private String name;
+    private String definition;
+    private Double target;
+    private Double currentValue;
+    private ReportingPeriod reportingPeriod;
+    private Long operationsManagerId;
+}

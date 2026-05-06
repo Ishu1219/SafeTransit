@@ -1,0 +1,29 @@
+package com.cts.dto.request;
+import java.util.List;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class CreateRouteRequest 
+{    
+	@NotBlank(message = "Route name cannot be blank")    
+	@Size(max = 50, message = "Route name cannot exceed 50 characters")    
+	private String routeName;   
+	@NotNull(message = "Route stops cannot be null")    
+	@NotEmpty(message = "Route stops cannot be empty")    
+	@Size(min = 2, message = "Route must have at least 2 stops")    
+	private List<String> routeStops;    
+	@Min(value = 1, message = "Distance must be at least 1 km")   
+	@Max(value = 30, message = "Distance cannot exceed 30 km")    
+	private int distanceKm;
+	}

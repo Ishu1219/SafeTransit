@@ -1,0 +1,72 @@
+package com.cts.controller;
+
+import com.cts.api.APIResponse;
+import com.cts.dto.request.CreateVehicleRequest;
+import com.cts.dto.request.UpdateVehicleRequest;
+import com.cts.dto.response.VehicleResponse;
+import com.cts.entity.Vehicle;
+import com.cts.service.VehicleService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/vehicles")
+@RequiredArgsConstructor
+public class VehicleController {
+
+    private final VehicleService vehicleService;
+
+    @PostMapping("/create")
+    public ResponseEntity<APIResponse<VehicleResponse>> createVehicle(
+            @RequestBody CreateVehicleRequest request) {
+        VehicleResponse response = vehicleService.createVehicle(request);
+        APIResponse<VehicleResponse> apiResponse = new APIResponse<>(
+                "success", "Vehicle created successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<Vehicle>> deleteVehicle(@PathVariable Long id) {
+        Vehicle response = vehicleService.deleteVehicle(id);
+        APIResponse<Vehicle> apiResponse = new APIResponse<>(
+                "success", "Vehicle deleted successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<VehicleResponse>> updateVehicle(
+            @PathVariable Long id,
+            @RequestBody UpdateVehicleRequest request) {
+        VehicleResponse response = vehicleService.updateVehicle(id, request);
+        APIResponse<VehicleResponse> apiResponse = new APIResponse<>(
+                "success", "Vehicle updated successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<APIResponse<VehicleResponse>> getVehicleById(@PathVariable Long id) {
+        VehicleResponse response = vehicleService.getVehicleById(id);
+        APIResponse<VehicleResponse> apiResponse = new APIResponse<>(
+                "success", "Vehicle fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<APIResponse<List<VehicleResponse>>> getAllVehicles() {
+        List<VehicleResponse> response = vehicleService.getAllVehicles();
+        APIResponse<List<VehicleResponse>> apiResponse = new APIResponse<>(
+                "success", "Vehicles fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<APIResponse<List<VehicleResponse>>> getByStatus(
+            @PathVariable String status) {
+        List<VehicleResponse> response = vehicleService.getVehiclesByStatus(status);
+        APIResponse<List<VehicleResponse>> apiResponse = new APIResponse<>(
+                "success", "Vehicles fetched by status: " + status, response);
+        return ResponseEntity.ok(apiResponse);
+    }
+}

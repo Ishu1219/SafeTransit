@@ -1,0 +1,174 @@
+package com.cts.service.imp;
+
+import com.cts.dto.request.CreateFleetManagerRequest;
+import com.cts.dto.request.UpdateFleetManagerRequest;
+import com.cts.dto.response.FleetManagerResponse;
+import com.cts.entity.FleetManager;
+import com.cts.entity.User;
+//import com.cts.enums.FleetManagerStatus;
+import com.cts.enums.Role;
+import com.cts.enums.UserStatus;
+import com.cts.exception.AlreadyExistException;
+import com.cts.exception.NotExistException;
+import com.cts.mapper.FleetManagerMapper;
+import com.cts.mapper.UserMapper;
+import com.cts.repository.FleetManagerRepository;
+import com.cts.repository.UserRepository;
+import com.cts.service.FleetManagerService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class FleetManagerServiceImpl implements FleetManagerService {
+
+    private final FleetManagerRepository fleetManagerRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    // =========================
+    // CREATE
+    // =========================
+    @Override
+    public FleetManagerResponse createFleetManager(CreateFleetManagerRequest request) {
+
+        // 1. Check identity
+        if (userRepository.findByEmail(request.getEmail()) != null) {
+            throw new AlreadyExistException(
+                    "User already exists with email: " + request.getEmail());
+        }
+
+        // 2. Create User (IDENTITY)
+        User user = UserMapper.createUser(
+                request.getName(),
+                request.getEmail(),
+                request.getPhone(),
+                request.getPassword(),
+                Role.FLEET_MANAGER
+        );
+        user.setStatus(UserStatus.USER_REGISTERED);
+//        userRepository.save(user);
+
+        // 3. Create FleetManager (ROLE)
+        FleetManager fleetManager =
+                FleetManagerMapper.toEntity(request, user);
+
+        fleetManager.setPassword(encodedPassword);
+        
+        FleetManager saved =
+                fleetManagerRepository.save(fleetManager);
+
+        return FleetManagerMapper.toResponse(saved);
+    }
+
+    // =========================
+    // DELETE (Soft delete User)
+    // =========================
+    @Override
+    public FleetManager deleteFleetManager(Long id) {
+
+        FleetManager fleetManager =
+                fleetManagerRepository.findByFleetManagerId(id);
+
+        if (fleetManager == null) {
+            throw new NotExistException(
+                    "Fleet Manager not found with id: " + id);
+        }
+
+        fleetManagerRepository.delete(fleetManager);
+
+        return fleetManager;
+    }
+
+    // =========================
+    // UPDATE (Single request)
+    // =========================
+    @Override
+    public FleetManagerResponse updateFleetManager(
+            Long id, UpdateFleetManagerRequest request) {
+
+        FleetManager fleetManager =
+                fleetManagerRepository.findById(id)
+                        .orElseThrow(() ->
+                                new NotExistException(
+                                        "Fleet Manager not found with id: " + id));
+
+        User user = fleetManager.getUser();
+
+        // -------- FleetManager fields --------
+        if (request.getName() != null) {
+            fleetManager.setName(request.getName());
+            user.setName(request.getName());
+        }
+
+        if (request.getEmail() != null) {
+            fleetManager.setEmail(request.getEmail());
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPhone() != null) {
+            fleetManager.setPhone(request.getPhone());
+            user.setPhone(request.getPhone());
+        }
+
+        if (request.getEmergencyContact() != null) {
+            fleetManager.setEmergencyContact(request.getEmergencyContact());
+        }
+
+        if (request.getAddress() != null) {
+            fleetManager.setAddress(request.getAddress());
+        }
+
+        if (request.getBloodGroup() != null) {
+            fleetManager.setBloodGroup(request.getBloodGroup());
+        }
+
+        if (request.getSex() != null) {
+            fleetManager.setSex(request.getSex());
+        }
+
+        if (request.getStatus() != null) {
+            fleetManager.setStatus(request.getStatus());
+            user.setStatus(UserStatus.USER_UPDATED);
+        }
+
+        // -------- Save --------
+        userRepository.save(user);
+        FleetManager updated =
+                fleetManagerRepository.save(fleetManager);
+
+        return FleetManagerMapper.toResponse(updated);
+    }
+
+    // =========================
+    // GET BY ID
+    // =========================
+    @Override
+    public FleetManagerResponse getFleetManagerById(Long id) {
+
+        FleetManager fleetManager =
+                fleetManagerRepository.findById(id)
+                        .orElseThrow(() ->
+                                new NotExistException(
+                                        "Fleet Manager not found with id: " + id));
+
+        return FleetManagerMapper.toResponse(fleetManager);
+    }
+
+    // =========================
+    // GET ALL
+    // =========================
+    @Override
+    public List<FleetManagerResponse> getAllFleetManagers() {
+
+        return fleetManagerRepository.findAll()
+                .stream()
+                .map(FleetManagerMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+}

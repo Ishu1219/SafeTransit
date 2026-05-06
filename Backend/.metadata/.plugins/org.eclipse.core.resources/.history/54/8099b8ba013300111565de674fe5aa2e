@@ -1,0 +1,17 @@
+package com.cts;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@SpringBootApplication
+public class FleetManagementSystemApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(FleetManagementSystemApplication.class, args);
+		  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		    String hash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh7u";
+		    System.out.println(encoder.matches("admin123", hash)); // must print true
+	}
+
+}

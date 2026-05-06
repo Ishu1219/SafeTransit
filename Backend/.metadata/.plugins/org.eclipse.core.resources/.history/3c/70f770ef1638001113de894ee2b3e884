@@ -1,0 +1,16 @@
+package com.cts.dto.request;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CreateMaintenanceRecordRequest {
+    private Long vehicleId;
+    private Long fleetManager;
+    private String taskDescription;
+    private String performedBy;
+    private String performedAt;    // ISO string e.g. "2026-04-01T08:00:00Z"
+    private Double cost;
+}

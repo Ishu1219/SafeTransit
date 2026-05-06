@@ -1,0 +1,148 @@
+package com.cts.service.imp;
+
+import com.cts.dto.request.CreateComplianceOfficerRequest;
+import com.cts.dto.request.UpdateComplianceOfficerRequest;
+import com.cts.dto.response.ComplianceOfficerResponse;
+import com.cts.entity.ComplianceOfficer;
+import com.cts.entity.User;
+import com.cts.enums.ComplainceOfficer;
+import com.cts.enums.Role;
+import com.cts.exception.AlreadyExistException;
+import com.cts.exception.NotExistException;
+import com.cts.mapper.ComplianceOfficerMapper;
+import com.cts.mapper.UserMapper;
+import com.cts.repository.ComplianceOfficerRepository;
+import com.cts.repository.UserRepository;
+import com.cts.service.ComplianceOfficerService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ComplianceOfficerServiceImpl implements ComplianceOfficerService {
+
+    private final ComplianceOfficerRepository complianceOfficerRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    // =========================
+    // CREATE
+    // =========================
+    @Override
+    public ComplianceOfficerResponse createOfficer(CreateComplianceOfficerRequest request) {
+        // Check if officer already exists by email
+        ComplianceOfficer existingOfficer = complianceOfficerRepository.findByEmail(request.getEmail());
+        if (existingOfficer != null) {
+            throw new AlreadyExistException("Compliance Officer already exists with email: " + request.getEmail());
+        }
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        User user = UserMapper.createUser(
+                request.getName(),
+                request.getEmail(),
+                request.getPhone(),
+               encodedPassword,
+                Role.COMPLIANCE_OFFICER
+        );
+        User savedUser = userRepository.save(user);
+        ComplianceOfficer officer = ComplianceOfficerMapper.toEntity(request,user);
+        officer.setPassword(encodedPassword);
+        ComplianceOfficer savedOfficer = complianceOfficerRepository.save(officer);
+        return ComplianceOfficerMapper.toResponse(savedOfficer);
+    }
+
+    // =========================
+    // DELETE
+    // =========================
+    @Override
+    public ComplianceOfficer deleteOfficer(Long id) {
+        ComplianceOfficer existingOfficer = complianceOfficerRepository.findById(id)
+                .orElseThrow(() -> new NotExistException("Compliance Officer not found with id: " + id));
+
+        complianceOfficerRepository.deleteById(id);
+        return existingOfficer;
+    }
+
+    // =========================
+    // UPDATE
+    // =========================
+    @Override
+    public ComplianceOfficerResponse updateOfficer(Long id, UpdateComplianceOfficerRequest request) {
+        ComplianceOfficer officer = complianceOfficerRepository.findById(id)
+                .orElseThrow(() -> new NotExistException("Compliance Officer not found with id: " + id));
+
+        // Update fields from request
+        //ComplianceOfficerMapper.updateEntity(officer, request);
+        // ✅ NAME CHECK
+        if (request.getName() != null) {
+            officer.setName(request.getName());
+        }
+
+        // ✅ EMAIL CHECK
+        if (request.getEmail() != null) {
+            officer.setEmail(request.getEmail());
+        }
+
+        // ✅ PHONE CHECK
+        if (request.getPhone() != null) {
+            officer.setPhone(request.getPhone());
+        }
+
+        // ✅ PASSWORD CHECK
+        if (request.getPassword() != null) {
+            officer.setPassword(request.getPassword());
+        }
+
+        // ✅ BLOOD GROUP CHECK
+        if (request.getBloodGroup() != null) {
+            officer.setBloodgroup(request.getBloodGroup());
+        }
+
+        // ✅ ADDRESS CHECK
+        if (request.getAddress() != null) {
+            officer.setAddress(request.getAddress());
+        }
+
+        // ✅ EMERGENCY CONTACT CHECK
+        if (request.getEmergencyContact() != null) {
+            officer.setEmergencycontact(request.getEmergencyContact());
+        }
+        
+
+     // ✅ STATUS CHECK
+        if (request.getStatus() != null) {
+            officer.setStatus(ComplainceOfficer.valueOf(request.getStatus().toUpperCase()));
+        }
+
+
+        ComplianceOfficer updatedOfficer = complianceOfficerRepository.save(officer);
+        return ComplianceOfficerMapper.toResponse(updatedOfficer);
+    }
+
+    // =========================
+    // GET ALL
+    // =========================
+    @Override
+    public List<ComplianceOfficerResponse> getAllOfficers() {
+        return complianceOfficerRepository.findAll()
+                .stream()
+                .map(ComplianceOfficerMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // =========================
+    // GET BY ID
+    // =========================
+    @Override
+    public ComplianceOfficerResponse getOfficerById(Long id) {
+        ComplianceOfficer officer = complianceOfficerRepository.findById(id)
+                .orElseThrow(() -> new NotExistException("Compliance Officer not found with id: " + id));
+
+        return ComplianceOfficerMapper.toResponse(officer);
+    }
+}

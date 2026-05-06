@@ -1,0 +1,15 @@
+-- 1. users table first
+INSERT INTO users (name, email, phone, password, role, status, created_at, updated_at)
+SELECT 'Admin', 'Admin@gmail.com', '9999999999',
+       '$2a$10$hT1pWaoUFhQEjZKYN7PWleIGgdbWXnXVbtIDl4uvUFgYXyWYKn9s',
+       'ADMINISTRATOR', 'ACTIVE', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@gmail.com');
+
+-- 2. admins table second
+INSERT INTO admins (name, email, password, phone, emergency_contact,
+                    address, blood_group, status, sex, created_at, updated_at)
+SELECT 'Admin', 'Admin@gmail.com',
+       '$2a$10$hT1pWaoUFhQEjZKYN7PWleIGgdbWXnXVbtIDl4uvUFgYXyWYKn9s',
+       '9999999999', '8888888888', 'Chennai', 'O+', 'ACTIVE', 'MALE',
+       CURDATE(), CURDATE()
+WHERE NOT EXISTS (SELECT 1 FROM admins WHERE email = 'admin@gmail.com');

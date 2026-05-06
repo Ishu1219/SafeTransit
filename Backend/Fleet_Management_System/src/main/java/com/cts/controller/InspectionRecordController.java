@@ -1,0 +1,99 @@
+package com.cts.controller;
+
+import com.cts.dto.request.CreateInspectionRecordRequest; 
+import com.cts.dto.request.UpdateInspectionRecordRequest;
+import com.cts.dto.response.InspectionRecordResponse;
+import com.cts.entity.InspectionRecord;
+import com.cts.repository.VehicleRepository;
+import com.cts.api.APIResponse;
+import com.cts.service.InspectionRecordService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/inspection-records")
+@RequiredArgsConstructor
+public class InspectionRecordController {
+
+    private final InspectionRecordService inspectionRecordService;
+
+    @PostMapping("/create/{id}")
+    public ResponseEntity<APIResponse<InspectionRecordResponse>> createInspection(
+    		@PathVariable Long id,
+            @Valid @RequestBody CreateInspectionRecordRequest request) {
+        InspectionRecordResponse response = inspectionRecordService.createInspection(id,request);
+        APIResponse<InspectionRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Inspection record created successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+  
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<InspectionRecord>> deleteInspection(@PathVariable Long id) {
+        InspectionRecord response = inspectionRecordService.deleteInspection(id);
+        APIResponse<InspectionRecord> apiResponse = new APIResponse<>(
+                "success", "Inspection record deleted successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+  
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<InspectionRecordResponse>> updateInspection(
+            @PathVariable Long id,
+           @Valid @RequestBody UpdateInspectionRecordRequest request) {
+        InspectionRecordResponse response = inspectionRecordService.updateInspection(id, request);
+        APIResponse<InspectionRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Inspection record updated successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+  
+    @GetMapping("/getAll")
+    public ResponseEntity<APIResponse<List<InspectionRecordResponse>>> getAllInspections() {
+        List<InspectionRecordResponse> response = inspectionRecordService.getAllInspections();
+        APIResponse<List<InspectionRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "Inspection records fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+   
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<InspectionRecordResponse>> getInspectionById(@PathVariable Long id) {
+        InspectionRecordResponse response = inspectionRecordService.getInspectionById(id);
+        APIResponse<InspectionRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Inspection record fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+    @GetMapping("/vehicle/{vehicleId}")
+    public ResponseEntity<APIResponse<List<InspectionRecordResponse>>> getInspectionsByVehicle(@PathVariable Long vehicleId) {
+        List<InspectionRecordResponse> response = inspectionRecordService.getInspectionsByVehicle(vehicleId);
+        APIResponse<List<InspectionRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "Inspection records fetched successfully for vehicle", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+  
+    @GetMapping("/inspector/{inspectorId}")
+    public ResponseEntity<APIResponse<List<InspectionRecordResponse>>> getInspectionsByInspector(@PathVariable Long inspectorId) {
+        List<InspectionRecordResponse> response = inspectionRecordService.getInspectionsByInspector(inspectorId);
+        APIResponse<List<InspectionRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "Inspection records fetched successfully for inspector", response);
+        return ResponseEntity.ok(apiResponse);
+    
+    }
+    @GetMapping("/status/{status}")
+    public ResponseEntity<APIResponse<List<InspectionRecordResponse>>> getInspectionsByStatus(@PathVariable String status) {
+          List<InspectionRecordResponse> response = inspectionRecordService.getInspectionsByStatus(status);
+            APIResponse<List<InspectionRecordResponse>> apiResponse = new APIResponse<>(                "success", "Inspection records fetched successfully by status", response);
+           return ResponseEntity.ok(apiResponse);
+       }
+}
+
+
+ 

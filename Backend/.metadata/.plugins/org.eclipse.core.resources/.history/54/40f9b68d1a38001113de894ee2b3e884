@@ -1,0 +1,15 @@
+package com.cts.dto.request;
+
+import lombok.*;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UpdateDriverAssignmentRequest {
+
+    private Long driverId;
+    private Long vehicleId;
+    private Integer routeId;     // routeId is int → Integer
+    private String status;       // ASSIGNED / ACTIVE / COMPLETED / CANCELLED
+    private Long dispatcherId;
+}

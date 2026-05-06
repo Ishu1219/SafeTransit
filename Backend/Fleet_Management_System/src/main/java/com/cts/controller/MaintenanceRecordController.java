@@ -1,0 +1,87 @@
+package com.cts.controller;
+
+import com.cts.api.APIResponse;
+import com.cts.dto.request.CreateMaintenanceRecordRequest;
+import com.cts.dto.request.UpdateMaintenanceRecordRequest;
+import com.cts.dto.response.MaintenanceRecordResponse;
+import com.cts.entity.MaintenanceRecord;
+import com.cts.service.MaintenanceRecordService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/maintenance")
+@RequiredArgsConstructor
+public class MaintenanceRecordController {
+
+    private final MaintenanceRecordService maintenanceService;
+
+    @PostMapping("/create")
+    public ResponseEntity<APIResponse<MaintenanceRecordResponse>> createRecord(
+           @Valid @RequestBody CreateMaintenanceRecordRequest request) {
+        MaintenanceRecordResponse response = maintenanceService.createMaintenanceRecord(request);
+        APIResponse<MaintenanceRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Maintenance record created successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<MaintenanceRecord>> deleteRecord(
+            @PathVariable Long id) {
+        MaintenanceRecord response = maintenanceService.deleteMaintenanceRecord(id);
+        APIResponse<MaintenanceRecord> apiResponse = new APIResponse<>(
+                "success", "Maintenance record deleted successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<MaintenanceRecordResponse>> updateRecord(
+            @PathVariable Long id,
+           @Valid @RequestBody UpdateMaintenanceRecordRequest request) {
+        MaintenanceRecordResponse response = maintenanceService.updateMaintenanceRecord(id, request);
+        APIResponse<MaintenanceRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Maintenance record updated successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<APIResponse<MaintenanceRecordResponse>> getById(
+            @PathVariable Long id) {
+        MaintenanceRecordResponse response = maintenanceService.getMaintenanceRecordById(id);
+        APIResponse<MaintenanceRecordResponse> apiResponse = new APIResponse<>(
+                "success", "Maintenance record fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<APIResponse<List<MaintenanceRecordResponse>>> getAll() {
+        List<MaintenanceRecordResponse> response = maintenanceService.getAllMaintenanceRecords();
+        APIResponse<List<MaintenanceRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "All maintenance records fetched successfully", response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/vehicle/{vehicleId}")
+    public ResponseEntity<APIResponse<List<MaintenanceRecordResponse>>> getByVehicle(
+            @PathVariable Long vehicleId) {
+        List<MaintenanceRecordResponse> response = maintenanceService.getByVehicle(vehicleId);
+        APIResponse<List<MaintenanceRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "Maintenance records fetched for vehicle: " + vehicleId, response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<APIResponse<List<MaintenanceRecordResponse>>> getByStatus(
+            @PathVariable String status) {
+        List<MaintenanceRecordResponse> response = maintenanceService.getByStatus(status);
+        APIResponse<List<MaintenanceRecordResponse>> apiResponse = new APIResponse<>(
+                "success", "Maintenance records fetched by status: " + status, response);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+   
+}

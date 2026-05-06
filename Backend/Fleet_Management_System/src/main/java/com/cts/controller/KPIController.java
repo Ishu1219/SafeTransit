@@ -1,0 +1,111 @@
+package com.cts.controller;
+
+import com.cts.api.APIResponse; 
+import com.cts.dto.request.CreateKPIRequest;
+import com.cts.dto.request.UpdateKPIRequest;
+import com.cts.dto.response.KPIResponse;
+import com.cts.entity.KPI;
+import com.cts.service.KPIService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/kpis")
+@RequiredArgsConstructor
+public class KPIController {
+
+    private final KPIService kpiService;
+
+    @PostMapping("/create")
+    public ResponseEntity<APIResponse<KPIResponse>> createKPI(
+           @Valid @RequestBody CreateKPIRequest request) {
+        KPIResponse response = kpiService.createKPI(request);
+        return ResponseEntity.ok(
+                APIResponse.<KPIResponse>builder()
+                        .status("SUCCESS")
+                        .message("KPI created successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<KPI>> deleteKPI(@PathVariable Long id) {
+        KPI response = kpiService.deleteKPI(id);
+        return ResponseEntity.ok(
+                APIResponse.<KPI>builder()
+                        .status("SUCCESS")
+                        .message("KPI deleted successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<KPIResponse>> updateKPI(
+            @PathVariable Long id,
+           @Valid @RequestBody UpdateKPIRequest request) {
+        KPIResponse response = kpiService.updateKPI(id, request);
+        return ResponseEntity.ok(
+                APIResponse.<KPIResponse>builder()
+                        .status("SUCCESS")
+                        .message("KPI updated successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<KPIResponse>> getKPIById(@PathVariable Long id) {
+        KPIResponse response = kpiService.getKPIById(id);
+        return ResponseEntity.ok(
+                APIResponse.<KPIResponse>builder()
+                        .status("SUCCESS")
+                        .message("KPI fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<APIResponse<List<KPIResponse>>> getAllKPIs() {
+        List<KPIResponse> response = kpiService.getAllKPIs();
+        return ResponseEntity.ok(
+                APIResponse.<List<KPIResponse>>builder()
+                        .status("SUCCESS")
+                        .message("All KPIs fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping("/operations-manager/{operationsManagerId}")
+    public ResponseEntity<APIResponse<List<KPIResponse>>> getByOperationsManager(
+            @PathVariable Long operationsManagerId) {
+        List<KPIResponse> response = kpiService.getByOperationsManager(operationsManagerId);
+        return ResponseEntity.ok(
+                APIResponse.<List<KPIResponse>>builder()
+                        .status("SUCCESS")
+                        .message("KPIs fetched for operations manager: " + operationsManagerId)
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @GetMapping("/period/{reportingPeriod}")
+    public ResponseEntity<APIResponse<List<KPIResponse>>> getByReportingPeriod(
+            @PathVariable String reportingPeriod) {
+        List<KPIResponse> response = kpiService.getByReportingPeriod(reportingPeriod);
+        return ResponseEntity.ok(
+                APIResponse.<List<KPIResponse>>builder()
+                        .status("SUCCESS")
+                        .message("KPIs fetched by period: " + reportingPeriod)
+                        .data(response)
+                        .build()
+        );
+    }
+}

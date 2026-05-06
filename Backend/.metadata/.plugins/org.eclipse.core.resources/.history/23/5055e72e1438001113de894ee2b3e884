@@ -1,0 +1,15 @@
+package com.cts.dto.request;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UpdateRouteScheduleRequest {
+
+    private String scheduleDate;
+    private String startTime;
+    private String endTime;
+    private String status; // PLANNED / ACTIVE / COMPLETED / CANCELLED
+}

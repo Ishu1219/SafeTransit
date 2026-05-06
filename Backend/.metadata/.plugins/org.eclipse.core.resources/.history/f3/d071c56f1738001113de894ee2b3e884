@@ -1,0 +1,16 @@
+package com.cts.dto.request;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CreateVehicleRequest {
+    private String regNumber;
+    private Integer capacity;
+    private String model;
+    private String manufacturer;
+    private String yearOfManufacture;
+    private String fuelType;
+}

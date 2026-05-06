@@ -1,0 +1,27 @@
+package com.cts.dto.request;
+
+
+
+import com.cts.enums.Sex;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateComplianceOfficerRequest {
+	 private String name;
+	    private String email;
+	    private String password;
+	    private String phone;
+	    private String licence;
+	    private String emergencyContact;
+	    private String address;
+	    private String bloodGroup;
+	    private Sex sex;
+	    private String status;
+}

@@ -1,0 +1,78 @@
+package com.cts.controller;
+
+import java.util.List; 
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cts.api.APIResponse;
+import com.cts.dto.request.CreateDriverAssignmentRequest;
+import com.cts.dto.request.UpdateDriverAssignmentRequest;
+import com.cts.dto.response.DriverAssignmentResponse;
+import com.cts.service.DriverAssignmentService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/driver-assignments")
+@RequiredArgsConstructor
+public class DriverAssignmentController {
+
+    private final DriverAssignmentService service;
+
+    @PostMapping("/create")
+    public ResponseEntity<APIResponse<DriverAssignmentResponse>> create(
+           @Valid @RequestBody CreateDriverAssignmentRequest request) {
+
+        return ResponseEntity.ok(
+                new APIResponse<>("success", "Driver assigned successfully",
+                        service.createAssignment(request))
+        );
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<DriverAssignmentResponse>> update(
+            @PathVariable Long id,
+           @Valid @RequestBody UpdateDriverAssignmentRequest request) {
+
+        return ResponseEntity.ok(
+                new APIResponse<>("success", "Assignment updated successfully",
+                        service.updateAssignment(id, request))
+        );
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<String>> delete(@PathVariable Long id) {
+
+        service.deleteAssignment(id);
+        return ResponseEntity.ok(
+                new APIResponse<>("success", "Assignment deleted", "OK")
+        );
+    }
+
+    @GetMapping("/getById/{id}")
+    public ResponseEntity<APIResponse<DriverAssignmentResponse>> getById(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                new APIResponse<>("success", "Fetched",
+                        service.getAssignmentById(id))
+        );
+    }
+
+    @GetMapping("/GETALL")
+    public ResponseEntity<APIResponse<List<DriverAssignmentResponse>>> getAll() {
+
+        return ResponseEntity.ok(
+                new APIResponse<>("success", "All assignments",
+                        service.getAllAssignments())
+        );
+    }
+}

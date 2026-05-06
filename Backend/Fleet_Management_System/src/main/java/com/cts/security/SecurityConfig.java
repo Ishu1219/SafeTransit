@@ -1,0 +1,320 @@
+package com.cts.security;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
+
+@Configuration
+@EnableMethodSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
+    private final CustomerUserDetailsService userDetailsService;
+   
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    	 http
+    	    .cors(Customizer.withDefaults())          // ← ADD THIS FIRST
+    	    .csrf(csrf -> csrf.disable())
+    	    .authenticationProvider(authenticationProvider())
+    	    .sessionManagement(sm -> sm
+    	        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    	    .authorizeHttpRequests(auth -> auth
+    	     
+    	    
+                
+                
+                
+            		.requestMatchers(
+                            "/auth/register",
+                            "/auth/login",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**"
+                        ).permitAll()
+                
+                
+                .requestMatchers("GET", "/admin/get/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT", "/admin/update/**")
+                    .hasRole("ADMINISTRATOR")
+
+           
+    
+                .requestMatchers("POST",   "/passengers/create")
+                    .permitAll()
+                .requestMatchers("DELETE", "/passengers/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("PUT",    "/passengers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("GET",    "/passengers/get/**")
+                    .hasAnyRole("ADMINISTRATOR")
+                .requestMatchers("GET",    "/passengers/getAll")
+                    .hasAnyRole("ADMINISTRATOR")
+                
+           
+                
+                .requestMatchers("POST",   "/passenger-reports/passengers/*/reports")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("PUT",    "/passenger-reports/passengers/*/reports/**")
+                    .hasAnyRole("ADMINISTRATOR", "PASSENGER")
+                .requestMatchers("GET",    "/passenger-reports/GETALL")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET","/passenger-reports/getById/**")
+                .hasAnyRole("PASSENGER")
+           
+                .requestMatchers("GET",    "/passenger-reports/passengers/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER", "PASSENGER")
+                .requestMatchers("GET",    "/passenger-reports/report/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/passenger-reports/report/passengers/**")
+                    .hasAnyRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/passenger-reports/delete/**")
+                    .hasAnyRole("ADMINISTRATOR","PASSENGER")
+
+           
+                
+                .requestMatchers("POST",   "/drivers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/drivers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/drivers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/drivers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "FLEET_MANAGER","OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/drivers/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "FLEET_MANAGER","OPERATIONS_MANAGER")
+
+             
+                .requestMatchers("POST",   "/dispatchers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/dispatchers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/dispatchers/update/**")
+                    .hasAnyRole("ADMINISTRATOR")
+                .requestMatchers("GET",    "/dispatchers/GETALL")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/dispatchers/getById/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "DISPATCHER")
+
+             
+                
+                .requestMatchers("POST",   "/fleetManagers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/fleetManagers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/fleetManagers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/fleetManagers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/fleetManagers/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "FLEET_MANAGER")
+
+               
+             
+                .requestMatchers("POST",   "/compliance-officers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/compliance-officers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/compliance-officers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/compliance-officers/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "AUDITOR")
+                .requestMatchers("GET",    "/compliance-officers/**")
+                    .hasAnyRole("ADMINISTRATOR", "AUDITOR", "COMPLIANCE_OFFICER")
+
+                
+                .requestMatchers("POST",   "/operations-managers/create")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("DELETE", "/operations-managers/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/operations-managers/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/operations-managers/getAll")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("GET",    "/operations-managers/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+
+            
+                
+                .requestMatchers("POST",   "/vehicles/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/vehicles/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/vehicles/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/vehicles/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "DISPATCHER",   "OPERATIONS_MANAGER","COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/vehicles/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/vehicles/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "DISPATCHER",   "OPERATIONS_MANAGER","COMPLIANCE_OFFICER")
+ 
+                
+                .requestMatchers("POST",   "/route/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/route/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/route/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/route/getAllRoutes")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "PASSENGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/route/getById/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "PASSENGER", "OPERATIONS_MANAGER")
+
+                
+                
+                .requestMatchers("POST",   "/route-schedules/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/route-schedules/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("PUT",    "/route-schedules/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/route-schedules/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/route-schedules/getById/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+
+                    
+                .requestMatchers("POST",   "/driver-assignments/create")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("DELETE", "/driver-assignments/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("PUT",    "/driver-assignments/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER")
+                .requestMatchers("GET",    "/driver-assignments/GETALL")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/driver-assignments/getById/**")
+                    .hasAnyRole("ADMINISTRATOR", "DISPATCHER",
+                                "DRIVER",       "OPERATIONS_MANAGER")
+
+       
+                
+                .requestMatchers("POST",   "/inspection-records/create/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("DELETE", "/inspection-records/delete/**")
+                    .hasAnyRole("ADMINISTRATOR","COMPLIANCE_OFFICER")
+                .requestMatchers("PUT",    "/inspection-records/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers("GET",    "/inspection-records/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/inspector/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/inspection-records/**")
+                    .hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER",
+                                "FLEET_MANAGER", "OPERATIONS_MANAGER")
+
+       
+                    
+                .requestMatchers("POST",   "/kpis/create")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("DELETE", "/kpis/delete/**")
+                    .hasRole("ADMINISTRATOR")
+                .requestMatchers("PUT",    "/kpis/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/kpis/getAll")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/operations-manager/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/period/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+                .requestMatchers("GET",    "/kpis/**")
+                    .hasAnyRole("ADMINISTRATOR", "OPERATIONS_MANAGER", "AUDITOR")
+
+  
+               
+                .requestMatchers("POST",   "/maintenance-plans/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/maintenance-plans/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("PUT",    "/maintenance-plans/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/overdue")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance-plans/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+
+           
+               
+                .requestMatchers("POST",   "/maintenance/create")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("DELETE", "/maintenance/delete/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("PUT",    "/maintenance/update/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER")
+                .requestMatchers("GET",    "/maintenance/all")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/vehicle/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/status/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                .requestMatchers("GET",    "/maintenance/get/**")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER",
+                                "COMPLIANCE_OFFICER", "OPERATIONS_MANAGER")
+                    .requestMatchers("GET", "/maintenance/vehicle/{vehicleId}/status/{status}")
+                    .hasAnyRole("ADMINISTRATOR", "FLEET_MANAGER", "OPERATIONS_MANAGER","COMPLIANCE_OFFICER")
+
+                .anyRequest().authenticated()
+            )
+           
+    	 .addFilterBefore(jwtAuthFilter,
+                 UsernamePasswordAuthenticationFilter.class);
+
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+}

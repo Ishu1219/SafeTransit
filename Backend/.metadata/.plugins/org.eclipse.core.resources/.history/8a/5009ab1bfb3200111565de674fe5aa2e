@@ -1,0 +1,7 @@
+
+-- 2. Insert into admins table
+INSERT INTO admins (name, email, password, phone, emergency_contact, address, blood_group, status, sex, created_at, updated_at)
+SELECT 'Admin', 'admin@gmail.com',
+       'admin123',
+       '9999999999', '8888888888', 'Chennai', 'O+', 'ACTIVE', 'MALE', CURDATE(), CURDATE()
+WHERE NOT EXISTS (SELECT 1 FROM admins WHERE email = 'admin@gmail.com');

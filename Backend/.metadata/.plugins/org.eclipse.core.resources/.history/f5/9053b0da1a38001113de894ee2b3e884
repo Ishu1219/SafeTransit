@@ -1,0 +1,22 @@
+package com.cts.dto.request;
+ 
+import com.cts.enums.DriverStatus;
+import com.cts.enums.Sex;
+
+import lombok.*;
+ 
+import com.cts.enums.DriverStatus;
+import lombok.Data;
+
+@Data
+public class UpdateDriverRequest {
+    private String name;
+    private String email;
+    private String phone;
+    private String licence;
+    private String emergencyContact;
+    private String address;
+    private String bloodGroup;
+    private DriverStatus status;   // ✅ ENUM
+    private Sex sex;
+}

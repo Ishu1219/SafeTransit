@@ -1,0 +1,117 @@
+package com.cts.controller;
+
+import com.cts.api.APIResponse;
+import com.cts.dto.request.CreateOperationsManagerRequest;
+import com.cts.dto.request.UpdateOperationsManagerRequest;
+import com.cts.dto.response.OperationsManagerResponse;
+import com.cts.entity.OperationsManager;
+import com.cts.service.OperationsManagerService;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/operations-managers")
+@RequiredArgsConstructor
+public class OperationsManagerController {
+
+    private final OperationsManagerService operationsManagerService;
+
+    // =========================
+    // CREATE OPERATIONS MANAGER
+    // =========================
+    @PostMapping("/create")
+    public ResponseEntity<APIResponse<OperationsManagerResponse>> createOperationsManager(
+            @RequestBody CreateOperationsManagerRequest request) {
+
+        OperationsManagerResponse response =
+                operationsManagerService.createOperationsManager(request);
+
+        return ResponseEntity.ok(
+                APIResponse.<OperationsManagerResponse>builder()
+                        .status("SUCCESS")
+                        .message("Operations Manager created successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    // =========================
+    // DELETE OPERATIONS MANAGER
+    // =========================
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse<OperationsManager>> deleteOperationsManager(
+            @PathVariable Long id) {
+
+        OperationsManager deleted =
+                operationsManagerService.deleteOperationsManager(id);
+
+        return ResponseEntity.ok(
+                APIResponse.<OperationsManager>builder()
+                        .status("SUCCESS")
+                        .message("Operations Manager deleted successfully")
+                        .data(deleted)
+                        .build()
+        );
+    }
+
+    // =========================
+    // UPDATE OPERATIONS MANAGER
+    // =========================
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse<OperationsManagerResponse>> updateOperationsManager(
+            @PathVariable Long id,
+            @RequestBody UpdateOperationsManagerRequest request) {
+
+        OperationsManagerResponse updated =
+                operationsManagerService.updateOperationsManager(id, request);
+
+        return ResponseEntity.ok(
+                APIResponse.<OperationsManagerResponse>builder()
+                        .status("SUCCESS")
+                        .message("Operations Manager updated successfully")
+                        .data(updated)
+                        .build()
+        );
+    }
+
+    // =========================
+    // GET ALL OPERATIONS MANAGERS
+    // =========================
+    @GetMapping("/getAll")
+    public ResponseEntity<APIResponse<List<OperationsManagerResponse>>> getAllOperationsManagers() {
+
+        List<OperationsManagerResponse> response =
+                operationsManagerService.getAllOperationsManagers();
+
+        return ResponseEntity.ok(
+                APIResponse.<List<OperationsManagerResponse>>builder()
+                        .status("SUCCESS")
+                        .message("Operations Managers fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    // =========================
+    // GET OPERATIONS MANAGER BY ID
+    // =========================
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<OperationsManagerResponse>> getOperationsManagerById(
+            @PathVariable Long id) {
+
+        OperationsManagerResponse response =
+                operationsManagerService.getOperationsManagerById(id);
+
+        return ResponseEntity.ok(
+                APIResponse.<OperationsManagerResponse>builder()
+                        .status("SUCCESS")
+                        .message("Operations Manager fetched successfully")
+                        .data(response)
+                        .build()
+        );
+    }
+}

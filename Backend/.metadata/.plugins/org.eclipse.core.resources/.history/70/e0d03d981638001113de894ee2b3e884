@@ -1,0 +1,17 @@
+package com.cts.dto.request;
+
+import com.cts.entity.FleetManager;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CreateMaintenancePlanRequest {
+    private Long vehicleId;
+    private Long fleetManagerId;
+    private Integer frequencyDays;
+    private String nextDueDate;     
+    // ISO date e.g. "2026-05-01"
+}
